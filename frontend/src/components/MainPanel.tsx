@@ -1,34 +1,17 @@
-import React, {useEffect, useRef, useState} from 'react'
+import React, {useEffect} from 'react'
 import ChatList from './ChatList'
 import InputBar from './InputBar'
 
 type Msg = { id: string; role: 'user'|'ai'; text: string }
+type Chat = { id: string; title: string; folderId?: string; messages: Msg[] }
 
-export default function MainPanel(){
-  const [messages, setMessages] = useState<Msg[]>([
-    {id: '1', role: 'ai', text: 'Hello — I can help you with course planning and Q&A.'},
-    {id: '2', role: 'user', text: 'Hi! Can you summarize the syllabus?'}
-  ])
-
-  const chatRef = useRef<HTMLDivElement|null>(null)
-
+export default function MainPanel({chat, onSend}:{chat: Chat | null, onSend:(text:string)=>void}){
   useEffect(()=>{
-    // keep scroll at bottom when messages change
     const el = document.querySelector('.chat-list')
     if(el) el.scrollTop = el.scrollHeight
-  },[messages])
+  },[chat?.messages?.length])
 
-  function handleSend(text:string){
-    const id = String(Date.now())
-    setMessages(prev => [...prev, {id, role:'user', text}])
-
-    // simple mock AI response
-    setTimeout(()=>{
-      setMessages(prev => [...prev, {id: String(Date.now()+1), role:'ai', text: 'That sounds great — here is a short summary: ...'}])
-    },700)
-  }
-
-  return (
+  if(!chat) return (
     <main className="main" role="main">
       <header>
         <div className="logo-box" aria-hidden>CC</div>
@@ -37,10 +20,25 @@ export default function MainPanel(){
           <div style={{fontSize:12,color:'var(--muted)'}}>Select a chat or start a new one</div>
         </div>
       </header>
+      <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',color:'var(--muted)'}}>
+        No chat selected
+      </div>
+    </main>
+  )
 
-      <ChatList messages={messages} />
+  return (
+    <main className="main" role="main">
+      <header>
+        <div className="logo-box" aria-hidden>CC</div>
+        <div>
+          <div className="greeting">{chat.title}</div>
+          <div style={{fontSize:12,color:'var(--muted)'}}>{chat.messages.length} messages</div>
+        </div>
+      </header>
 
-      <InputBar onSend={handleSend} />
+      <ChatList messages={chat.messages} />
+
+      <InputBar onSend={onSend} />
     </main>
   )
 }
