@@ -68,3 +68,7 @@ body{margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, '
 .icon-btn{background:transparent;border:1px solid rgba(255,255,255,0.03);padding:4px 6px;border-radius:6px;color:var(--muted);cursor:pointer}
 .icon-btn:hover{border-color:rgba(255,255,255,0.06);color:var(--text)}
 
+/* Folder/General headers and indented chats */
+.chat-under-folder{padding-left:8px;margin-left:8px !important}
+.list-item.chat-under-folder{background:rgba(255,255,255,0.005)}
+

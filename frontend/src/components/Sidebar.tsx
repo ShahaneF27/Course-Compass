@@ -86,12 +86,11 @@ export default function Sidebar({
         )}
       </div>
 
-      <div style={{marginTop:8,fontSize:12,color:'var(--muted)'}}>Chats</div>
       <div className="list" role="list" aria-label="Chat list">
         {folders.map(folder=> (
-          <div key={folder.id} style={{marginBottom:8}}>
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'6px 8px'}}>
-              <div style={{fontSize:12,color:'var(--muted)'}}>{folder.name}</div>
+          <div key={folder.id} style={{marginBottom:16}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 8px',fontWeight:700,fontSize:'14px',color:'var(--text)',borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
+              <div>{folder.name}</div>
               <div style={{display:'flex',gap:6}}>
                 {onEditFolder && <button className="icon-btn" aria-label={`Edit folder ${folder.name}`} onClick={()=>{
                   const nv = prompt('Folder name', folder.name)
@@ -103,9 +102,9 @@ export default function Sidebar({
               </div>
             </div>
             {chats.filter(c=>c.folderId===folder.id).map(c=> (
-              <div key={c.id} role="listitem" className={`list-item ${c.id===activeChatId? 'active':''}`}>
+              <div key={c.id} role="listitem" className={`list-item chat-under-folder ${c.id===activeChatId? 'active':''}`}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                  <div style={{flex:1,cursor:'pointer'}} onClick={()=>onSelectChat(c.id)}>{c.title}</div>
+                  <div style={{flex:1,cursor:'pointer',fontSize:'13px',paddingLeft:'12px'}} onClick={()=>onSelectChat(c.id)}>{c.title}</div>
                   <div style={{display:'flex',gap:6}}>
                     {onEditChat && <button className="icon-btn" aria-label={`Edit chat ${c.title}`} onClick={()=>{
                       const nv = prompt('Chat title', c.title)
@@ -121,22 +120,29 @@ export default function Sidebar({
           </div>
         ))}
 
-        {ungrouped.map(c=> (
-          <div key={c.id} role="listitem" className={`list-item ${c.id===activeChatId? 'active':''}`}> 
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-              <div style={{flex:1,cursor:'pointer'}} onClick={()=>onSelectChat(c.id)}>{c.title}</div>
-              <div style={{display:'flex',gap:6}}>
-                {onEditChat && <button className="icon-btn" aria-label={`Edit chat ${c.title}`} onClick={()=>{
-                  const nv = prompt('Chat title', c.title)
-                  if(nv) onEditChat(c.id, nv)
-                }}>✎</button>}
-                {onDeleteChat && <button className="icon-btn" aria-label={`Delete chat ${c.title}`} onClick={()=>{
-                  if(confirm('Delete chat?')) onDeleteChat(c.id)
-                }}>🗑</button>}
-              </div>
+        {ungrouped.length > 0 && (
+          <div style={{marginBottom:16}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 8px',fontWeight:700,fontSize:'14px',color:'var(--text)',borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
+              <div>General</div>
             </div>
+            {ungrouped.map(c=> (
+              <div key={c.id} role="listitem" className={`list-item ${c.id===activeChatId? 'active':''}`}> 
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <div style={{flex:1,cursor:'pointer'}} onClick={()=>onSelectChat(c.id)}>{c.title}</div>
+                  <div style={{display:'flex',gap:6}}>
+                    {onEditChat && <button className="icon-btn" aria-label={`Edit chat ${c.title}`} onClick={()=>{
+                      const nv = prompt('Chat title', c.title)
+                      if(nv) onEditChat(c.id, nv)
+                    }}>✎</button>}
+                    {onDeleteChat && <button className="icon-btn" aria-label={`Delete chat ${c.title}`} onClick={()=>{
+                      if(confirm('Delete chat?')) onDeleteChat(c.id)
+                    }}>🗑</button>}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
 
       <div style={{marginTop:'auto',fontSize:12,color:'var(--muted)'}}>Signed in as <strong style={{color:'var(--text)'}}>You</strong></div>
