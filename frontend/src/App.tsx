@@ -85,15 +85,37 @@ function App(){
     setActiveChatId(id)
   }
 
-  function addMessageToChat(chatId:string, text:string){
+  async function addMessageToChat(chatId:string, text:string){
     const userMsg: Msg = { id: String(Date.now()), role: 'user', text }
     setChats(prev => prev.map(c => c.id === chatId ? { ...c, messages: [...c.messages, userMsg] } : c))
 
-    // mock AI reply after short delay
-    setTimeout(()=>{
-      const aiMsg: Msg = { id: String(Date.now()+1), role: 'ai', text: 'Thanks — here is a short summary...' }
-      setChats(prev => prev.map(c => c.id === chatId ? { ...c, messages: [...c.messages, aiMsg] } : c))
-    }, 700)
+    // show typing indicator
+    const typingMsg: Msg = { id: String(Date.now()+0.5), role: 'ai', text: 'AI is typing...' }
+    setChats(prev => prev.map(c => c.id === chatId ? { ...c, messages: [...c.messages, typingMsg] } : c))
+
+    try{
+      // call backend API
+      const response = await fetch('http://localhost:8000/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: text })
+      })
+
+      if(!response.ok) throw new Error(`API error: ${response.status}`)
+      const data = await response.json()
+
+      // remove typing indicator and add real response
+      let aiText = data.answer
+      if(data.sources && data.sources.length > 0){
+        aiText += '\n\n**Sources:**\n' + data.sources.map((s:any)=>`- ${s.breadcrumb}`).join('\n')
+      }
+      const aiMsg: Msg = { id: String(Date.now()+1), role: 'ai', text: aiText }
+      setChats(prev => prev.map(c => c.id === chatId ? { ...c, messages: c.messages.filter(m=>m.id !== typingMsg.id).concat([aiMsg]) } : c))
+    }catch(e){
+      console.error('API error:', e)
+      const errorMsg: Msg = { id: String(Date.now()+1), role: 'ai', text: `Error: ${(e as Error).message}` }
+      setChats(prev => prev.map(c => c.id === chatId ? { ...c, messages: c.messages.filter(m=>m.id !== typingMsg.id).concat([errorMsg]) } : c))
+    }
   }
 
   const activeChat = chats.find(c => c.id === activeChatId) ?? null
@@ -115,7 +137,7 @@ function App(){
 
       <MainPanel
         chat={activeChat}
-        onSend={(text)=>{ if(activeChat) addMessageToChat(activeChat.id, text) }}
+        onSend={(text:string)=>{ if(activeChat) addMessageToChat(activeChat.id, text) }}
       />
     </div>
   )

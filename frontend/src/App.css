@@ -61,7 +61,7 @@ body{margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, '
 /* New chat inline form */
 .new-chat-form{display:flex;flex-direction:column;gap:8px;width:100%}
 .new-chat-input{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--text)}
-.new-chat-select{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--text)}
+.new-chat-select{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:#fff;color:#000}
 .form-actions{display:flex;gap:8px}
 
 /* icon button */
