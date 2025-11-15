@@ -59,6 +59,28 @@ function App(){
     return chat
   }
 
+  function editChat(id:string, newTitle:string){
+    setChats(prev => prev.map(c => c.id === id ? { ...c, title: newTitle } : c))
+  }
+
+  function deleteChat(id:string){
+    setChats(prev => prev.filter(c => c.id !== id))
+    if(activeChatId === id){
+      const remaining = chats.filter(c=>c.id !== id)
+      setActiveChatId(remaining[0]?.id ?? null)
+    }
+  }
+
+  function editFolder(id:string, newName:string){
+    setFolders(prev => prev.map(f => f.id === id ? { ...f, name: newName } : f))
+  }
+
+  function deleteFolder(id:string){
+    // remove folder and ungroup chats
+    setFolders(prev => prev.filter(f => f.id !== id))
+    setChats(prev => prev.map(c => c.folderId === id ? { ...c, folderId: undefined } : c))
+  }
+
   function selectChat(id:string){
     setActiveChatId(id)
   }
@@ -85,6 +107,10 @@ function App(){
         onSelectChat={selectChat}
         onNewChat={(title, folderId)=> addChat(title, folderId)}
         onNewFolder={(name)=> addFolder(name)}
+        onEditChat={(id:string,title:string)=> editChat(id,title)}
+        onDeleteChat={(id:string)=> deleteChat(id)}
+        onEditFolder={(id:string,name:string)=> editFolder(id,name)}
+        onDeleteFolder={(id:string)=> deleteFolder(id)}
       />
 
       <MainPanel

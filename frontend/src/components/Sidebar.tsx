@@ -10,7 +10,11 @@ export default function Sidebar({
   activeChatId,
   onSelectChat,
   onNewChat,
-  onNewFolder
+  onNewFolder,
+  onEditChat,
+  onDeleteChat,
+  onEditFolder,
+  onDeleteFolder
 }:{
   chats: Chat[]
   folders: Folder[]
@@ -18,6 +22,10 @@ export default function Sidebar({
   onSelectChat:(id:string)=>void
   onNewChat:(title?:string, folderId?:string)=>void
   onNewFolder:(name?:string)=>void
+  onEditChat?:(id:string, title:string)=>void
+  onDeleteChat?:(id:string)=>void
+  onEditFolder?:(id:string, name:string)=>void
+  onDeleteFolder?:(id:string)=>void
 }){
   const [showForm, setShowForm] = useState(false)
   const [title, setTitle] = useState('')
@@ -82,15 +90,52 @@ export default function Sidebar({
       <div className="list" role="list" aria-label="Chat list">
         {folders.map(folder=> (
           <div key={folder.id} style={{marginBottom:8}}>
-            <div style={{fontSize:12,color:'var(--muted)',padding:'6px 8px'}}>{folder.name}</div>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'6px 8px'}}>
+              <div style={{fontSize:12,color:'var(--muted)'}}>{folder.name}</div>
+              <div style={{display:'flex',gap:6}}>
+                {onEditFolder && <button className="icon-btn" aria-label={`Edit folder ${folder.name}`} onClick={()=>{
+                  const nv = prompt('Folder name', folder.name)
+                  if(nv) onEditFolder(folder.id, nv)
+                }}>✎</button>}
+                {onDeleteFolder && <button className="icon-btn" aria-label={`Delete folder ${folder.name}`} onClick={()=>{
+                  if(confirm('Delete folder? Chats will be ungrouped.')) onDeleteFolder(folder.id)
+                }}>🗑</button>}
+              </div>
+            </div>
             {chats.filter(c=>c.folderId===folder.id).map(c=> (
-              <div key={c.id} role="listitem" className={`list-item ${c.id===activeChatId? 'active':''}`} onClick={()=>onSelectChat(c.id)}>{c.title}</div>
+              <div key={c.id} role="listitem" className={`list-item ${c.id===activeChatId? 'active':''}`}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <div style={{flex:1,cursor:'pointer'}} onClick={()=>onSelectChat(c.id)}>{c.title}</div>
+                  <div style={{display:'flex',gap:6}}>
+                    {onEditChat && <button className="icon-btn" aria-label={`Edit chat ${c.title}`} onClick={()=>{
+                      const nv = prompt('Chat title', c.title)
+                      if(nv) onEditChat(c.id, nv)
+                    }}>✎</button>}
+                    {onDeleteChat && <button className="icon-btn" aria-label={`Delete chat ${c.title}`} onClick={()=>{
+                      if(confirm('Delete chat?')) onDeleteChat(c.id)
+                    }}>🗑</button>}
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         ))}
 
         {ungrouped.map(c=> (
-          <div key={c.id} role="listitem" className={`list-item ${c.id===activeChatId? 'active':''}`} onClick={()=>onSelectChat(c.id)}>{c.title}</div>
+          <div key={c.id} role="listitem" className={`list-item ${c.id===activeChatId? 'active':''}`}> 
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <div style={{flex:1,cursor:'pointer'}} onClick={()=>onSelectChat(c.id)}>{c.title}</div>
+              <div style={{display:'flex',gap:6}}>
+                {onEditChat && <button className="icon-btn" aria-label={`Edit chat ${c.title}`} onClick={()=>{
+                  const nv = prompt('Chat title', c.title)
+                  if(nv) onEditChat(c.id, nv)
+                }}>✎</button>}
+                {onDeleteChat && <button className="icon-btn" aria-label={`Delete chat ${c.title}`} onClick={()=>{
+                  if(confirm('Delete chat?')) onDeleteChat(c.id)
+                }}>🗑</button>}
+              </div>
+            </div>
+          </div>
         ))}
       </div>
 
