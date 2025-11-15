@@ -21,7 +21,19 @@ export default function Sidebar({
 }){
   function handleNewChat(){
     const title = prompt('Chat title') || undefined
-    onNewChat(title)
+    if(!title) return
+
+    let folderId: string | undefined = undefined
+    if(folders && folders.length > 0){
+      const list = ['0: None', ...folders.map((f,i)=>`${i+1}: ${f.name}`)].join('\n')
+      const resp = prompt(`Choose folder number to add chat into (leave blank for none):\n${list}`) || ''
+      const num = parseInt(resp, 10)
+      if(!isNaN(num) && num > 0 && num <= folders.length){
+        folderId = folders[num-1].id
+      }
+    }
+
+    onNewChat(title, folderId)
   }
 
   function handleNewFolder(){
