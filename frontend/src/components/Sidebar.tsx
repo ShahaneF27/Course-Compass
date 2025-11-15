@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useState, useRef, useEffect} from 'react'
 
 type Msg = { id: string; role: 'user'|'ai'; text: string }
 type Chat = { id: string; title: string; folderId?: string; messages: Msg[] }
@@ -19,21 +19,33 @@ export default function Sidebar({
   onNewChat:(title?:string, folderId?:string)=>void
   onNewFolder:(name?:string)=>void
 }){
-  function handleNewChat(){
-    const title = prompt('Chat title') || undefined
-    if(!title) return
+  const [showForm, setShowForm] = useState(false)
+  const [title, setTitle] = useState('')
+  const [selectedFolder, setSelectedFolder] = useState<string>('')
+  const inputRef = useRef<HTMLInputElement|null>(null)
 
-    let folderId: string | undefined = undefined
-    if(folders && folders.length > 0){
-      const list = ['0: None', ...folders.map((f,i)=>`${i+1}: ${f.name}`)].join('\n')
-      const resp = prompt(`Choose folder number to add chat into (leave blank for none):\n${list}`) || ''
-      const num = parseInt(resp, 10)
-      if(!isNaN(num) && num > 0 && num <= folders.length){
-        folderId = folders[num-1].id
-      }
+  useEffect(()=>{
+    if(showForm && inputRef.current){
+      inputRef.current.focus()
     }
+  },[showForm])
 
-    onNewChat(title, folderId)
+  function openForm(){
+    setTitle('')
+    setSelectedFolder('')
+    setShowForm(true)
+  }
+
+  function handleCreate(e?:React.FormEvent){
+    e?.preventDefault()
+    if(!title.trim()) return
+    const folderId = selectedFolder || undefined
+    onNewChat(title.trim(), folderId)
+    setShowForm(false)
+  }
+
+  function handleCancel(){
+    setShowForm(false)
   }
 
   function handleNewFolder(){
@@ -46,8 +58,24 @@ export default function Sidebar({
   return (
     <aside className="sidebar" role="navigation" aria-label="Sidebar">
       <div className="actions">
-        <button className="btn primary" aria-label="New chat" onClick={handleNewChat}>+ New Chat</button>
-        <button className="btn" aria-label="New folder" onClick={handleNewFolder}>+ New Folder</button>
+        {!showForm ? (
+          <>
+            <button className="btn primary" aria-label="New chat" onClick={openForm}>+ New Chat</button>
+            <button className="btn" aria-label="New folder" onClick={handleNewFolder}>+ New Folder</button>
+          </>
+        ) : (
+          <form className="new-chat-form" onSubmit={handleCreate}>
+            <input ref={inputRef} className="new-chat-input" aria-label="Chat title" placeholder="Chat title" value={title} onChange={e=>setTitle(e.target.value)} />
+            <select className="new-chat-select" aria-label="Folder" value={selectedFolder} onChange={e=>setSelectedFolder(e.target.value)}>
+              <option value="">No folder</option>
+              {folders.map(f=> <option key={f.id} value={f.id}>{f.name}</option>)}
+            </select>
+            <div className="form-actions">
+              <button type="submit" className="btn primary">Create</button>
+              <button type="button" className="btn" onClick={handleCancel}>Cancel</button>
+            </div>
+          </form>
+        )}
       </div>
 
       <div style={{marginTop:8,fontSize:12,color:'var(--muted)'}}>Chats</div>
