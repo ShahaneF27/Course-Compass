@@ -2,6 +2,7 @@ import './App.css'
 import Sidebar from './components/Sidebar'
 import MainPanel from './components/MainPanel'
 import { useEffect, useState } from 'react'
+import { sendChatMessage } from './api'
 
 type Msg = { id: string; role: 'user'|'ai'; text: string }
 type Chat = { id: string; title: string; folderId?: string; messages: Msg[] }
@@ -85,15 +86,46 @@ function App(){
     setActiveChatId(id)
   }
 
-  function addMessageToChat(chatId:string, text:string){
+  async function addMessageToChat(chatId:string, text:string){
     const userMsg: Msg = { id: String(Date.now()), role: 'user', text }
     setChats(prev => prev.map(c => c.id === chatId ? { ...c, messages: [...c.messages, userMsg] } : c))
 
-    // mock AI reply after short delay
-    setTimeout(()=>{
-      const aiMsg: Msg = { id: String(Date.now()+1), role: 'ai', text: 'Thanks — here is a short summary...' }
-      setChats(prev => prev.map(c => c.id === chatId ? { ...c, messages: [...c.messages, aiMsg] } : c))
-    }, 700)
+    // Show loading indicator
+    const loadingMsg: Msg = { id: `loading-${Date.now()}`, role: 'ai', text: '...' }
+    setChats(prev => prev.map(c => c.id === chatId ? { ...c, messages: [...c.messages, loadingMsg] } : c))
+
+    try {
+      // Call backend API
+      const response = await sendChatMessage(text)
+      
+      // Format answer with sources if available
+      let answerText = response.answer
+      if (response.sources && response.sources.length > 0) {
+        const sourcesList = response.sources.map((s, i) => 
+          `\n[Source ${i+1}: ${s.breadcrumb}]`
+        ).join('')
+        answerText = answerText + sourcesList
+      }
+
+      const aiMsg: Msg = { id: String(Date.now()+1), role: 'ai', text: answerText }
+      setChats(prev => prev.map(c => 
+        c.id === chatId 
+          ? { ...c, messages: c.messages.filter(m => m.id !== loadingMsg.id).concat(aiMsg) }
+          : c
+      ))
+    } catch (error) {
+      console.error('API error:', error)
+      const errorMsg: Msg = { 
+        id: String(Date.now()+1), 
+        role: 'ai', 
+        text: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}. Please make sure the backend is running on ${import.meta.env.VITE_API_URL || 'http://localhost:8000'}.` 
+      }
+      setChats(prev => prev.map(c => 
+        c.id === chatId 
+          ? { ...c, messages: c.messages.filter(m => m.id !== loadingMsg.id).concat(errorMsg) }
+          : c
+      ))
+    }
   }
 
   const activeChat = chats.find(c => c.id === activeChatId) ?? null
